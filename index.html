@@ -461,6 +461,7 @@
         <th>Téléphone</th>
         <th onclick="sortBy('statut')">Statut ↕</th>
         <th onclick="sortBy('dateContact')">Date ↕</th>
+        <th>Relance</th>
         <th>Actions</th>
       </tr>
     </thead>
@@ -704,6 +705,7 @@ function renderTable() {
         </select>
       </td>
       <td style="font-size:12px;color:var(--text-muted);">${esc(p.dateContact) || '—'}</td>
+      <td>${getRelanceBadge(p)}</td>
       <td>
         <div class="actions">
           <button class="action-btn" id="writeBtn-${p.id}" onclick="generateEmail(${p.id})" title="Générer email IA">✉️</button>
@@ -739,6 +741,52 @@ function getStatusClass(statut) {
     'rdv': 'status-rdv',
     'perdu': 'status-perdu',
   }[n] || 'status-a-contacter';
+}
+
+function getRelanceBadge(p) {
+  const statut = (p.statut || '').toLowerCase();
+  const dateContact = p.dateContact;
+
+  // Pas de relance pour ces statuts
+  if (!dateContact || statut.includes('répondu') || statut.includes('repondu') ||
+      statut.includes('rdv') || statut.includes('démo') || statut.includes('demo') ||
+      statut.includes('perdu') || statut.includes('à contacter')) {
+    return '<span style="font-size:11px;color:var(--text-dim);">—</span>';
+  }
+
+  const contact = new Date(dateContact);
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  contact.setHours(0,0,0,0);
+  const diffDays = Math.floor((today - contact) / (1000 * 60 * 60 * 24));
+
+  let nextAction = '';
+  let daysUntil = 0;
+  let color = '';
+
+  if (statut.includes('j0') && !statut.includes('j3') && !statut.includes('j7')) {
+    // Après J0 → relance J3 dans 3 jours
+    daysUntil = 3 - diffDays;
+    nextAction = 'Relance J3';
+    color = 'var(--orange)';
+  } else if (statut.includes('j3') && !statut.includes('j7')) {
+    // Après J3 → relance J7 dans 4 jours (7-3)
+    daysUntil = 4 - diffDays;
+    nextAction = 'Relance J7';
+    color = 'var(--red)';
+  } else if (statut.includes('j7')) {
+    return '<span style="font-size:11px;color:var(--text-dim);">Séquence terminée</span>';
+  } else {
+    return '<span style="font-size:11px;color:var(--text-dim);">—</span>';
+  }
+
+  if (daysUntil <= 0) {
+    return `<span style="font-size:11px;font-weight:600;color:${color};background:${color}22;padding:2px 8px;border-radius:6px;">🔔 ${nextAction} maintenant !</span>`;
+  } else if (daysUntil === 1) {
+    return `<span style="font-size:11px;color:${color};">⏳ ${nextAction} demain</span>`;
+  } else {
+    return `<span style="font-size:11px;color:var(--text-muted);">📅 ${nextAction} dans ${daysUntil}j</span>`;
+  }
 }
 
 function updateStats() {
