@@ -838,16 +838,15 @@ async function updateStatut(id, newStatut) {
   }
 
   try {
-    const res = await fetch(CONFIG.scriptUrl, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'updateStatut',
-        row: id + 2, // +2 car row 1 = headers, id commence à 0
-        statut: newStatut,
-        dateContact: new Date().toISOString().slice(0, 10),
-      }),
+    const params = new URLSearchParams({
+      action: 'updateStatut',
+      row: id + 2,
+      statut: newStatut,
+      dateContact: new Date().toISOString().slice(0, 10),
+    });
+    const res = await fetch(CONFIG.scriptUrl + '?' + params.toString(), {
+      method: 'GET',
+      mode: 'cors',
     });
     showToast(`${prospect.club} → ${newStatut}`);
   } catch (e) {
