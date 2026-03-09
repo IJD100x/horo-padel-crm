@@ -871,6 +871,7 @@ async function updateStatut(id, newStatut) {
 
   const oldStatut = prospect.statut;
   prospect.statut = newStatut;
+  prospect.dateContact = new Date().toISOString().slice(0, 10);
 
   // Update the select styling
   const select = document.querySelector(`select[data-id="${id}"]`);
@@ -878,6 +879,7 @@ async function updateStatut(id, newStatut) {
     select.className = 'status-select ' + getStatusClass(newStatut);
   }
   updateStats();
+  renderTable();
 
   // Sync to Google Sheet via Apps Script
   if (!CONFIG.scriptUrl) {
