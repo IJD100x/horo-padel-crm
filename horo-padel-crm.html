@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Horo AI — CRM Clubs de Padel</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --card: #1a1d27;
+    --card-hover: #222633;
+    --border: #2a2e3d;
+    --accent: #6c5ce7;
+    --accent-light: #a29bfe;
+    --green: #00b894;
+    --orange: #fdcb6e;
+    --red: #e17055;
+    --text: #dfe6e9;
+    --text-muted: #818a96;
+    --text-dim: #636e72;
+    --white: #ffffff;
+    --radius: 10px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, var(--card) 0%, #1e2235 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .logo {
+    font-size: 24px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .logo span { font-weight: 400; opacity: 0.7; }
+  .badge {
+    background: var(--accent);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .header-actions { display: flex; gap: 10px; }
+  .btn {
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: var(--accent-light); }
+  .btn-secondary { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--card-hover); }
+  .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { color: var(--text); border-color: var(--text-muted); }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+  .btn-green { background: var(--green); color: white; }
+  .btn-green:hover { background: #00a381; }
+
+  /* ── STATS BAR ── */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    padding: 20px 32px;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    text-align: center;
+  }
+  .stat-value { font-size: 28px; font-weight: 800; }
+  .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-green { color: var(--green); }
+  .stat-orange { color: var(--orange); }
+  .stat-red { color: var(--red); }
+  .stat-accent { color: var(--accent-light); }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    padding: 0 32px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .search-box {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+  }
+  .search-box input {
+    width: 100%;
+    padding: 10px 16px 10px 40px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-box input:focus { border-color: var(--accent); }
+  .search-box::before {
+    content: "🔍";
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+  }
+  .filter-group { display: flex; gap: 6px; }
+  .filter-btn {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-btn:hover { color: var(--text); border-color: var(--text-muted); }
+  .filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+  /* ── TABLE ── */
+  .table-container {
+    padding: 0 32px 32px;
+    overflow-x: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card);
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  thead { background: #14161e; }
+  th {
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+  }
+  th:hover { color: var(--text); }
+  td {
+    padding: 12px 16px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  tr:hover { background: var(--card-hover); }
+  tr:last-child td { border-bottom: none; }
+
+  /* Statut badges */
+  .status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .status-a-contacter { background: rgba(108, 92, 231, 0.15); color: var(--accent-light); }
+  .status-j0 { background: rgba(0, 184, 148, 0.15); color: var(--green); }
+  .status-j3 { background: rgba(253, 203, 110, 0.15); color: var(--orange); }
+  .status-j7 { background: rgba(225, 112, 85, 0.15); color: var(--red); }
+  .status-repondu { background: rgba(0, 184, 148, 0.3); color: #55efc4; }
+  .status-rdv { background: rgba(0, 184, 148, 0.5); color: white; }
+  .status-perdu { background: rgba(99, 110, 114, 0.2); color: var(--text-dim); }
+
+  /* Status select */
+  .status-select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s;
+    max-width: 160px;
+  }
+  .status-select:hover { border-color: var(--accent); }
+  .status-select.status-a-contacter { color: var(--accent-light); }
+  .status-select.status-j0 { color: var(--green); }
+  .status-select.status-j3 { color: var(--orange); }
+  .status-select.status-j7 { color: var(--red); }
+  .status-select.status-repondu { color: #55efc4; }
+  .status-select.status-rdv { color: white; background: rgba(0, 184, 148, 0.4); }
+  .status-select.status-perdu { color: var(--text-dim); }
+
+  /* Action buttons */
+  .actions { display: flex; gap: 6px; }
+  .action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+  .action-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
+  .action-btn.writing { background: var(--orange); color: #333; border-color: var(--orange); animation: pulse 1s ease-in-out infinite; }
+
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: 560px;
+    max-width: 90vw;
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 0;
+  }
+  .modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .modal-header h3 { font-size: 16px; font-weight: 700; }
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 20px;
+    cursor: pointer;
+  }
+  .modal-body { padding: 24px; }
+  .modal-field { margin-bottom: 16px; }
+  .modal-field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .modal-field .value {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
+  /* ── CONFIG MODAL ── */
+  .config-field { margin-bottom: 16px; }
+  .config-field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .config-field input, .config-field textarea {
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+  }
+  .config-field input:focus, .config-field textarea:focus { border-color: var(--accent); }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+  }
+  .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+  .empty-state h3 { font-size: 18px; color: var(--text); margin-bottom: 8px; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--green);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    z-index: 2000;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* ── NOTE GOOGLE ── */
+  .note-stars { color: var(--orange); font-size: 12px; }
+  .avis-count { color: var(--text-dim); font-size: 11px; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .header, .stats-bar, .toolbar, .table-container { padding-left: 16px; padding-right: 16px; }
+    .stats-bar { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ── LINK STYLES ── */
+  a { color: var(--accent-light); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ── LOADING ── */
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo">HORO AI <span>· Padel</span></div>
+    <div class="badge">CRM Prospection</div>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-ghost" onclick="exportCSV()">📥 Export CSV</button>
+    <button class="btn btn-secondary" onclick="openConfigModal()">⚙️ Config</button>
+    <button class="btn btn-primary" onclick="reloadData()">🔄 Recharger</button>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat-card">
+    <div class="stat-value stat-accent" id="stat-total">0</div>
+    <div class="stat-label">Clubs total</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value stat-green" id="stat-a-contacter">0</div>
+    <div class="stat-label">À contacter</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value stat-orange" id="stat-en-cours">0</div>
+    <div class="stat-label">En séquence</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value stat-green" id="stat-repondu">0</div>
+    <div class="stat-label">Ont répondu</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value stat-red" id="stat-perdu">0</div>
+    <div class="stat-label">Perdus</div>
+  </div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Rechercher un club, gérant, ville..." oninput="renderTable()">
+  </div>
+  <div class="filter-group">
+    <button class="filter-btn active" data-filter="all" onclick="setFilter('all', this)">Tous</button>
+    <button class="filter-btn" data-filter="a-contacter" onclick="setFilter('a-contacter', this)">À contacter</button>
+    <button class="filter-btn" data-filter="en-sequence" onclick="setFilter('en-sequence', this)">En séquence</button>
+    <button class="filter-btn" data-filter="repondu" onclick="setFilter('repondu', this)">Répondu</button>
+    <button class="filter-btn" data-filter="rdv" onclick="setFilter('rdv', this)">RDV</button>
+    <button class="filter-btn" data-filter="perdu" onclick="setFilter('perdu', this)">Perdus</button>
+  </div>
+</div>
+
+<!-- TABLE -->
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th onclick="sortBy('club')">Club ↕</th>
+        <th onclick="sortBy('gerant')">Gérant ↕</th>
+        <th onclick="sortBy('ville')">Ville ↕</th>
+        <th>Email</th>
+        <th>Téléphone</th>
+        <th onclick="sortBy('statut')">Statut ↕</th>
+        <th onclick="sortBy('dateContact')">Date ↕</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody">
+    </tbody>
+  </table>
+  <div class="empty-state" id="emptyState" style="display:none;">
+    <div class="icon">🎾</div>
+    <h3>Aucun club trouvé</h3>
+    <p>Configurez l'URL de votre Google Sheet pour charger les données.</p>
+  </div>
+</div>
+
+<!-- EMAIL MODAL -->
+<div class="modal-overlay" id="emailModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>✉️ Email généré par IA</h3>
+      <button class="modal-close" onclick="closeModal('emailModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-field">
+        <label>Destinataire</label>
+        <div class="value" id="modalTo"></div>
+      </div>
+      <div class="modal-field">
+        <label>Objet</label>
+        <div class="value" id="modalSubject"></div>
+      </div>
+      <div class="modal-field">
+        <label>Message</label>
+        <div class="value" id="modalBody"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="copyEmail()">📋 Copier</button>
+      <button class="btn btn-primary" id="mailtoBtn">📧 Ouvrir Mail</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIG MODAL -->
+<div class="modal-overlay" id="configModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>⚙️ Configuration</h3>
+      <button class="modal-close" onclick="closeModal('configModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="config-field">
+        <label>URL Google Sheet (publiée en CSV)</label>
+        <input type="text" id="configSheetUrl" placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv">
+        <small style="color:var(--text-dim);font-size:11px;margin-top:4px;display:block;">
+          Fichier → Partager → Publier sur le Web → Format CSV
+        </small>
+      </div>
+      <div class="config-field">
+        <label>URL Worker Cloudflare</label>
+        <input type="text" id="configWorkerUrl" placeholder="https://horo-padel-ai.xxx.workers.dev">
+      </div>
+      <div class="config-field">
+        <label>URL Google Apps Script (écriture vers le Sheet)</label>
+        <input type="text" id="configScriptUrl" placeholder="https://script.google.com/macros/s/.../exec">
+        <small style="color:var(--text-dim);font-size:11px;margin-top:4px;display:block;">
+          Permet de modifier le statut depuis le CRM. Voir le guide de déploiement.
+        </small>
+      </div>
+      <div class="config-field">
+        <label>Nom de l'expéditeur (signature email)</label>
+        <input type="text" id="configSender" placeholder="Ibrahima">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('configModal')">Annuler</button>
+      <button class="btn btn-green" onclick="saveConfig()">💾 Sauvegarder</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═════════════════════════════════════════════
+// CONFIGURATION
+// ═════════════════════════════════════════════
+let CONFIG = {
+  sheetUrl: localStorage.getItem('horo_sheet_url') || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRKbyeCLWtwN7xE31DKIDSWw3SRW72QwuXkPr6JTq4FnCqYxb-Ynp0M8JGJJtBmO0j69rX-M6_JvijG/pub?gid=1101584623&single=true&output=csv',
+  workerUrl: localStorage.getItem('horo_worker_url') || 'https://horo-padel-worker.ibrahima-dll.workers.dev',
+  scriptUrl: localStorage.getItem('horo_script_url') || 'https://script.google.com/macros/s/AKfycbyxLzy-mZn6klgfLzaecr4kqJM-mkpsXI8sqwX8e8bRJ15wPd0fBBnz2cCDpC7x-XP8Gw/exec',
+  sender: localStorage.getItem('horo_sender') || 'Ibrahima',
+};
+
+const STATUT_OPTIONS = [
+  'À contacter',
+  'Email J0 envoyé',
+  'Relance J3 à faire',
+  'Relance J3 envoyée',
+  'Relance J7 à faire',
+  'Relance J7 envoyée',
+  'Répondu',
+  'RDV / Démo',
+  'Perdu',
+];
+
+let prospects = [];
+let currentFilter = 'all';
+let sortField = '';
+let sortDirection = 1;
+
+// ═════════════════════════════════════════════
+// GOOGLE SHEET LOADING
+// ═════════════════════════════════════════════
+async function loadFromSheet() {
+  if (!CONFIG.sheetUrl) {
+    showEmptyState(true);
+    return;
+  }
+  try {
+    const res = await fetch(CONFIG.sheetUrl);
+    const csv = await res.text();
+    prospects = parseCSV(csv);
+    renderTable();
+    updateStats();
+    showEmptyState(false);
+    showToast(`${prospects.length} clubs chargés`);
+  } catch (e) {
+    showToast('Erreur chargement Google Sheet');
+    console.error(e);
+  }
+}
+
+function parseCSV(csv) {
+  const lines = csv.split('\n').filter(l => l.trim());
+  if (lines.length < 2) return [];
+
+  const headers = parseCSVLine(lines[0]);
+
+  // Map column names (flexible matching)
+  const colMap = {};
+  headers.forEach((h, i) => {
+    const key = h.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (key.includes('club') || key.includes('nom')) colMap.club = i;
+    else if (key.includes('gerant') || key.includes('contact') || key.includes('prenom')) colMap.gerant = i;
+    else if (key.includes('ville') || key.includes('city')) colMap.ville = i;
+    else if (key.includes('email') || key.includes('mail')) colMap.email = i;
+    else if (key.includes('tel') || key.includes('phone')) colMap.telephone = i;
+    else if (key.includes('site') || key.includes('url') || key.includes('web')) colMap.siteWeb = i;
+    else if (key.includes('statut') || key.includes('status')) colMap.statut = i;
+    else if (key.includes('date')) colMap.dateContact = i;
+  });
+
+  return lines.slice(1).map((line, idx) => {
+    const cols = parseCSVLine(line);
+    return {
+      id: idx,
+      club: cols[colMap.club] || '',
+      gerant: cols[colMap.gerant] || '',
+      ville: cols[colMap.ville] || '',
+      email: cols[colMap.email] || '',
+      telephone: cols[colMap.telephone] || '',
+      siteWeb: cols[colMap.siteWeb] || '',
+      statut: cols[colMap.statut] || 'À contacter',
+      dateContact: cols[colMap.dateContact] || '',
+    };
+  }).filter(p => p.club.trim());
+}
+
+function parseCSVLine(line) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') {
+      if (inQuotes && line[i + 1] === '"') { current += '"'; i++; }
+      else inQuotes = !inQuotes;
+    } else if (c === ',' && !inQuotes) {
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += c;
+    }
+  }
+  result.push(current.trim());
+  return result;
+}
+
+// ═════════════════════════════════════════════
+// RENDERING
+// ═════════════════════════════════════════════
+function renderTable() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  let filtered = prospects.filter(p => {
+    const matchesSearch = !search ||
+      p.club.toLowerCase().includes(search) ||
+      p.gerant.toLowerCase().includes(search) ||
+      p.ville.toLowerCase().includes(search) ||
+      p.email.toLowerCase().includes(search);
+
+    const statut = normalizeStatut(p.statut);
+    let matchesFilter = true;
+    if (currentFilter === 'a-contacter') matchesFilter = statut === 'a-contacter';
+    else if (currentFilter === 'en-sequence') matchesFilter = ['j0', 'j3', 'j7'].includes(statut);
+    else if (currentFilter === 'repondu') matchesFilter = statut === 'repondu';
+    else if (currentFilter === 'rdv') matchesFilter = statut === 'rdv';
+    else if (currentFilter === 'perdu') matchesFilter = statut === 'perdu';
+
+    return matchesSearch && matchesFilter;
+  });
+
+  if (sortField) {
+    filtered.sort((a, b) => {
+      const va = (a[sortField] || '').toLowerCase();
+      const vb = (b[sortField] || '').toLowerCase();
+      return va.localeCompare(vb) * sortDirection;
+    });
+  }
+
+  const tbody = document.getElementById('tableBody');
+  if (filtered.length === 0) {
+    tbody.innerHTML = '';
+    showEmptyState(true);
+    return;
+  }
+  showEmptyState(false);
+
+  tbody.innerHTML = filtered.map(p => `
+    <tr>
+      <td>
+        <strong>${esc(p.club)}</strong>
+        ${p.siteWeb ? `<br><a href="${esc(p.siteWeb)}" target="_blank" style="font-size:11px;">🌐 Site</a>` : ''}
+      </td>
+      <td>${esc(p.gerant)}</td>
+      <td>${esc(p.ville)}</td>
+      <td>${p.email ? `<a href="mailto:${esc(p.email)}">${esc(p.email)}</a>` : '—'}</td>
+      <td>${p.telephone ? `<a href="tel:${esc(p.telephone)}">${esc(p.telephone)}</a>` : '—'}</td>
+      <td>
+        <select class="status-select ${getStatusClass(p.statut)}" onchange="updateStatut(${p.id}, this.value)" data-id="${p.id}">
+          ${STATUT_OPTIONS.map(s => `<option value="${esc(s)}" ${p.statut === s ? 'selected' : ''}>${esc(s)}</option>`).join('')}
+        </select>
+      </td>
+      <td style="font-size:12px;color:var(--text-muted);">${esc(p.dateContact) || '—'}</td>
+      <td>
+        <div class="actions">
+          <button class="action-btn" id="writeBtn-${p.id}" onclick="generateEmail(${p.id})" title="Générer email IA">✉️</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function normalizeStatut(s) {
+  const sl = (s || '').toLowerCase();
+  if (sl.includes('rdv') || sl.includes('demo') || sl.includes('démo')) return 'rdv';
+  if (sl.includes('repondu') || sl.includes('répondu')) return 'repondu';
+  if (sl.includes('perdu') || sl.includes('refus') || sl.includes('non')) return 'perdu';
+  if (sl.includes('j0') || sl.includes('j3') || sl.includes('j7') || sl.includes('envoy') || sl.includes('relance')) return detectSequence(sl);
+  return 'a-contacter';
+}
+
+function detectSequence(sl) {
+  if (sl.includes('j7')) return 'j7';
+  if (sl.includes('j3')) return 'j3';
+  return 'j0';
+}
+
+function getStatusClass(statut) {
+  const n = normalizeStatut(statut);
+  return {
+    'a-contacter': 'status-a-contacter',
+    'j0': 'status-j0',
+    'j3': 'status-j3',
+    'j7': 'status-j7',
+    'repondu': 'status-repondu',
+    'rdv': 'status-rdv',
+    'perdu': 'status-perdu',
+  }[n] || 'status-a-contacter';
+}
+
+function updateStats() {
+  const stats = { total: prospects.length, aContacter: 0, enCours: 0, repondu: 0, perdu: 0 };
+  prospects.forEach(p => {
+    const s = normalizeStatut(p.statut);
+    if (s === 'a-contacter') stats.aContacter++;
+    else if (['j0', 'j3', 'j7'].includes(s)) stats.enCours++;
+    else if (s === 'repondu' || s === 'rdv') stats.repondu++;
+    else if (s === 'perdu') stats.perdu++;
+  });
+  document.getElementById('stat-total').textContent = stats.total;
+  document.getElementById('stat-a-contacter').textContent = stats.aContacter;
+  document.getElementById('stat-en-cours').textContent = stats.enCours;
+  document.getElementById('stat-repondu').textContent = stats.repondu;
+  document.getElementById('stat-perdu').textContent = stats.perdu;
+}
+
+// ═════════════════════════════════════════════
+// EMAIL GENERATION
+// ═════════════════════════════════════════════
+async function generateEmail(id) {
+  const prospect = prospects.find(p => p.id === id);
+  if (!prospect) return;
+  if (!CONFIG.workerUrl) { showToast('Configurez le Worker URL dans ⚙️ Config'); return; }
+
+  const btn = document.getElementById(`writeBtn-${id}`);
+  btn.classList.add('writing');
+  btn.innerHTML = '<span class="spinner"></span>';
+
+  try {
+    const res = await fetch(CONFIG.workerUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prospect: {
+          club: prospect.club,
+          gerant: prospect.gerant,
+          ville: prospect.ville,
+          email: prospect.email,
+          statut: prospect.statut,
+          siteWeb: prospect.siteWeb,
+        },
+        type: 'auto',
+      }),
+    });
+
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    // Show modal
+    document.getElementById('modalTo').textContent = prospect.email || 'Non renseigné';
+    document.getElementById('modalSubject').textContent = data.subject;
+    document.getElementById('modalBody').textContent = data.body;
+
+    const mailto = `mailto:${encodeURIComponent(prospect.email)}?subject=${encodeURIComponent(data.subject)}&body=${encodeURIComponent(data.body + '\n\n' + CONFIG.sender)}`;
+    document.getElementById('mailtoBtn').onclick = () => window.location.href = mailto;
+
+    window._currentEmail = data;
+    document.getElementById('emailModal').classList.add('active');
+
+  } catch (e) {
+    showToast('Erreur : ' + e.message);
+  } finally {
+    btn.classList.remove('writing');
+    btn.innerHTML = '✉️';
+  }
+}
+
+function copyEmail() {
+  if (!window._currentEmail) return;
+  const text = `Objet : ${window._currentEmail.subject}\n\n${window._currentEmail.body}\n\n${CONFIG.sender}`;
+  navigator.clipboard.writeText(text).then(() => showToast('Email copié !'));
+}
+
+// ═════════════════════════════════════════════
+// UPDATE STATUT → GOOGLE SHEET (bidirectionnel)
+// ═════════════════════════════════════════════
+async function updateStatut(id, newStatut) {
+  const prospect = prospects.find(p => p.id === id);
+  if (!prospect) return;
+
+  const oldStatut = prospect.statut;
+  prospect.statut = newStatut;
+
+  // Update the select styling
+  const select = document.querySelector(`select[data-id="${id}"]`);
+  if (select) {
+    select.className = 'status-select ' + getStatusClass(newStatut);
+  }
+  updateStats();
+
+  // Sync to Google Sheet via Apps Script
+  if (!CONFIG.scriptUrl) {
+    showToast('Statut modifié localement (configurez Apps Script pour sync)');
+    return;
+  }
+
+  try {
+    const res = await fetch(CONFIG.scriptUrl, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'updateStatut',
+        row: id + 2, // +2 car row 1 = headers, id commence à 0
+        statut: newStatut,
+        dateContact: new Date().toISOString().slice(0, 10),
+      }),
+    });
+    showToast(`${prospect.club} → ${newStatut}`);
+  } catch (e) {
+    showToast('Erreur sync : ' + e.message);
+    prospect.statut = oldStatut;
+    if (select) select.value = oldStatut;
+  }
+}
+
+// ═════════════════════════════════════════════
+// FILTERS & SORT
+// ═════════════════════════════════════════════
+function setFilter(filter, el) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderTable();
+}
+
+function sortBy(field) {
+  if (sortField === field) sortDirection *= -1;
+  else { sortField = field; sortDirection = 1; }
+  renderTable();
+}
+
+// ═════════════════════════════════════════════
+// CONFIG
+// ═════════════════════════════════════════════
+function openConfigModal() {
+  document.getElementById('configSheetUrl').value = CONFIG.sheetUrl;
+  document.getElementById('configWorkerUrl').value = CONFIG.workerUrl;
+  document.getElementById('configScriptUrl').value = CONFIG.scriptUrl;
+  document.getElementById('configSender').value = CONFIG.sender;
+  document.getElementById('configModal').classList.add('active');
+}
+
+function saveConfig() {
+  CONFIG.sheetUrl = document.getElementById('configSheetUrl').value.trim();
+  CONFIG.workerUrl = document.getElementById('configWorkerUrl').value.trim();
+  CONFIG.scriptUrl = document.getElementById('configScriptUrl').value.trim();
+  CONFIG.sender = document.getElementById('configSender').value.trim() || 'Ibrahima';
+  localStorage.setItem('horo_sheet_url', CONFIG.sheetUrl);
+  localStorage.setItem('horo_worker_url', CONFIG.workerUrl);
+  localStorage.setItem('horo_script_url', CONFIG.scriptUrl);
+  localStorage.setItem('horo_sender', CONFIG.sender);
+  closeModal('configModal');
+  showToast('Config sauvegardée');
+  loadFromSheet();
+}
+
+// ═════════════════════════════════════════════
+// EXPORT CSV
+// ═════════════════════════════════════════════
+function exportCSV() {
+  if (!prospects.length) return;
+  const headers = ['Club', 'Gérant', 'Ville', 'Email', 'Téléphone', 'Site Web', 'Statut', 'Date Contact'];
+  const rows = prospects.map(p => [p.club, p.gerant, p.ville, p.email, p.telephone, p.siteWeb, p.statut, p.dateContact].map(v => `"${(v||'').replace(/"/g, '""')}"`).join(','));
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `horo-padel-export-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  showToast('Export CSV téléchargé');
+}
+
+// ═════════════════════════════════════════════
+// UTILS
+// ═════════════════════════════════════════════
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+function showEmptyState(show) { document.getElementById('emptyState').style.display = show ? 'block' : 'none'; }
+function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+function reloadData() { loadFromSheet(); }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// Click outside modal to close
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', (e) => { if (e.target === m) m.classList.remove('active'); });
+});
+
+// INIT
+loadFromSheet();
+</script>
+</body>
+</html>
